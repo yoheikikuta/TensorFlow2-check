@@ -1,0 +1,10 @@
+// See https://aka.ms/vscode-remote/devcontainer.json for format details.
+{
+	"name": "Python 3",
+	"context": "..",
+	"dockerFile": "Dockerfile",
+	"appPort": "8888:8888",
+	"extensions": [
+		"ms-python.python"
+	]
+}
