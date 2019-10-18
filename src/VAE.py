@@ -96,7 +96,6 @@ def log_normal_pdf(sample, mean, logvar, raxis=1):
         axis=raxis)
 
 
-@tf.function
 def compute_loss(model, x):
     z_mean, z_log_var, z, reconstructed = model(x)
 
@@ -107,6 +106,16 @@ def compute_loss(model, x):
     logqz_x = log_normal_pdf(z, z_mean, z_log_var)
 
     return -tf.reduce_mean(logpx_z + logpz - logqz_x)
+
+
+@tf.function
+def train(vae, optimizer, train_dataset, test_dataset):
+    for step, x_batch_train in enumerate(train_dataset):
+        with tf.GradientTape() as tape:
+            loss = compute_loss(vae, x_batch_train)
+
+        grads = tape.gradient(loss, vae.trainable_weights)
+        optimizer.apply_gradients(zip(grads, vae.trainable_weights))
 
 
 if __name__ == "__main__":
@@ -139,22 +148,9 @@ if __name__ == "__main__":
     vae = VariationalAutoEncoder(50)
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4)
 
-    # Iterate over epochs.
     for epoch in range(3):
-        print('Start of epoch %d' % (epoch,))
-
-        # Iterate over the batches of the dataset.
-        for step, x_batch_train in enumerate(train_dataset):
-            with tf.GradientTape() as tape:
-                loss = compute_loss(vae, x_batch_train)
-
-            grads = tape.gradient(loss, vae.trainable_weights)
-            optimizer.apply_gradients(zip(grads, vae.trainable_weights))
-
-        loss = tf.keras.metrics.Mean()
-        for test_x in test_dataset:
-            loss(compute_loss(vae, test_x))
-        print(loss.result())
+        print(f"Start of epoch {epoch + 1}")
+        train(vae, optimizer, train_dataset, test_dataset)
 
     end = time.time()
     print(f"TRAINING TIME: {end - start} [sec]")
