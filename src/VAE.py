@@ -117,6 +117,12 @@ def train(vae, optimizer, train_dataset, test_dataset):
         grads = tape.gradient(loss, vae.trainable_weights)
         optimizer.apply_gradients(zip(grads, vae.trainable_weights))
 
+    test_loss = tf.constant(0.0)  # Required to be defined before being used.
+    for test_x in test_dataset:
+        test_loss = compute_loss(vae, test_x)
+
+    return test_loss
+
 
 if __name__ == "__main__":
     (train_images, _), (test_images, _) = tf.keras.datasets.mnist.load_data()
@@ -150,7 +156,8 @@ if __name__ == "__main__":
 
     for epoch in range(3):
         print(f"Start of epoch {epoch + 1}")
-        train(vae, optimizer, train_dataset, test_dataset)
+        test_loss = train(vae, optimizer, train_dataset, test_dataset)
+        print(f"  test loss: {test_loss}")
 
     end = time.time()
     print(f"TRAINING TIME: {end - start} [sec]")
