@@ -109,7 +109,7 @@ def compute_loss(model, x):
 
 
 @tf.function
-def train(vae, optimizer, train_dataset, test_dataset):
+def train(vae, optimizer, test_loss, train_dataset, test_dataset):
     for step, x_batch_train in enumerate(train_dataset):
         with tf.GradientTape() as tape:
             loss = compute_loss(vae, x_batch_train)
@@ -117,11 +117,8 @@ def train(vae, optimizer, train_dataset, test_dataset):
         grads = tape.gradient(loss, vae.trainable_weights)
         optimizer.apply_gradients(zip(grads, vae.trainable_weights))
 
-    test_loss = tf.constant(0.0)  # Required to be defined before being used.
     for test_x in test_dataset:
-        test_loss = compute_loss(vae, test_x)
-
-    return test_loss
+        test_loss(compute_loss(vae, test_x))
 
 
 if __name__ == "__main__":
@@ -156,8 +153,9 @@ if __name__ == "__main__":
 
     for epoch in range(3):
         print(f"Start of epoch {epoch + 1}")
-        test_loss = train(vae, optimizer, train_dataset, test_dataset)
-        print(f"  test loss: {test_loss}")
+        test_loss = tf.keras.metrics.Mean()
+        train(vae, optimizer, test_loss, train_dataset, test_dataset)
+        print(f"  test loss: {test_loss.result()}")
 
     end = time.time()
     print(f"TRAINING TIME: {end - start} [sec]")
