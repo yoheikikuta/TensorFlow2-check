@@ -1,7 +1,8 @@
-import tensorflow as tf
-import numpy as np
-from tensorflow.keras import layers
 import time
+
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras import layers
 
 
 class Sampling(layers.Layer):
